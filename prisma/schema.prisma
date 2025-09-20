@@ -82,4 +82,3 @@ model VerificationToken {
 //   @@id([userId, credentialID])
 // }
 
-// FGDxPc9ZcfUW46R5
