@@ -24,7 +24,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       authorization: {
         params: {
           scope:
-            "openid email profile https://www.googleapis.com/auth/calender.events https://www.googleapis.com/auth/gmail.send",
+            "openid email profile https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/gmail.send",
+
           access_type: "offline",
           prompt: "consent",
         },
@@ -71,6 +72,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
 
   secret: process.env.AUTH_SECRET,
+
+  pages: {
+    signIn: "/auth",
+  },
 
   debug: process.env.NODE_ENV === "development",
 });
