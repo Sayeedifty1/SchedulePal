@@ -27,9 +27,20 @@ export function DashboardSidebar({ DashboardSidebarProps }) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Reminders</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton>
+                  <Clock className="h-4 w-4" />
+                  <span>Reminders</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
