@@ -3,14 +3,26 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardHeader } from "../components/dashboard-header";
 import { DashboardSidebar } from "../components/dashboard-sidebar";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Bot, Calendar, Clock, Mail, Send } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Message } from "@/generated/prisma";
+import { ChatMessage } from "../components/chat-message";
 
-const DashboardPageComponent = () => {
+const DashboardPageComponent = ({ messages }: { messages: Message[] }) => {
   const [activeTab, setActiveTab] = useState("chat");
+  const [localMessages] = useState<Message[]>(messages);
+
+  const messageEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (messageEndRef.current) {
+      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
   return (
     <div className="flex h-screen w-full bg-background">
       {/* sidebar */}
@@ -41,7 +53,12 @@ const DashboardPageComponent = () => {
           </TabsList>
           <div className="flex1 overflow-y-auto px-4 pb-4 pt-14 mb-20">
             <TabsContent value="chat" className="space-y-4">
-              CHATS
+              <div className="flex-1 space-y-4 pb-4">
+                {localMessages.map((message) => (
+                  <ChatMessage key={message.id} message={message} />
+                ))}
+                <div ref={messageEndRef} />
+              </div>
             </TabsContent>
             <TabsContent value="calendar" className="space-y-4">
               CALENDER

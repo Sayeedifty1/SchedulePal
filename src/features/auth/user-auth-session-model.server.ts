@@ -1,6 +1,7 @@
 import { prop } from "ramda";
 
 import { prisma } from "@/prisma";
+import { Session } from "next-auth";
 
 export const getGoogleAccountByEmail = async (email: string) =>
   prisma.account.findFirst({
@@ -40,3 +41,13 @@ export const updateAccessToken = async (
   });
   return accessToken;
 };
+
+export const getCurrentUser = async (session: Session) =>
+  prisma.user.findUnique({
+    where: { email: session.user?.email as string },
+    include: {
+      messages: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
