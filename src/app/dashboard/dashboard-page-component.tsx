@@ -3,17 +3,40 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardHeader } from "../components/dashboard-header";
 import { DashboardSidebar } from "../components/dashboard-sidebar";
-import { useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 import { Bot, Calendar, Clock, Mail, Send } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Message } from "@/generated/prisma";
+import { CalendarEvent, Message } from "@/generated/prisma";
 import { ChatMessage } from "../components/chat-message";
 
-const DashboardPageComponent = ({ messages }: { messages: Message[] }) => {
+import { CalendarEventSchedule } from "@/features/calendar-events/types";
+import { parseCalendarEvent } from "@/features/calendar-events/utils";
+import { CalendarEventCard } from "../components/calendar-even-card";
+
+const DashboardPageComponent = ({
+  messages,
+  calendarEvents,
+}: {
+  messages: Message[];
+  calendarEvents: CalendarEvent[];
+}) => {
   const [activeTab, setActiveTab] = useState("chat");
   const [localMessages] = useState<Message[]>(messages);
+  const [input, setInput] = useState("");
+  const [calendarEvent, setCalendarEvent] = useState<CalendarEventSchedule>({
+    title: "",
+    location: "",
+    description: "",
+    startDate: "",
+    endDate: "",
+    startTime: "",
+    endTime: "",
+    attendees: [],
+  });
+
+  const [showCalendarEvent, setShowCalendarEvent] = useState(false);
 
   const messageEndRef = useRef<HTMLDivElement>(null);
 
@@ -21,7 +44,43 @@ const DashboardPageComponent = ({ messages }: { messages: Message[] }) => {
     if (messageEndRef.current) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
+  }, [localMessages]);
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (input.trim()) {
+      processMessage(input.trim());
+      setInput("");
+    }
+  };
+
+  const processMessage = async (message: string) => {
+    // const event = parseCalendarEvent(message);
+
+    if (
+      message.toLowerCase().includes("add meeting") ||
+      message.toLowerCase().includes("schedule") ||
+      message.toLowerCase().includes("meeting") ||
+      message.toLowerCase().includes("set up")
+    ) {
+      processCalendarEvent(message);
+    }
+  };
+
+  const processCalendarEvent = async (message: string) => {
+    const event = parseCalendarEvent(message);
+    setCalendarEvent(event);
+    setShowCalendarEvent(true);
+  };
+
+  const onSaveCalendarEvent = async (eventData: CalendarEventSchedule) => {
+    // Schedule a meeting titled "Tech Sync with Team"
+    // starting at June 13, 2025 4:00 PM
+    // ending at June 13, 2025 5:00 PM
+    // with description "Discuss sprint goals and blockers."
+
+    console.log("Saving event:", eventData);
+  };
 
   return (
     <div className="flex h-screen w-full bg-background">
@@ -59,6 +118,13 @@ const DashboardPageComponent = ({ messages }: { messages: Message[] }) => {
                 ))}
                 <div ref={messageEndRef} />
               </div>
+              {showCalendarEvent && (
+                <CalendarEventCard
+                  initialData={calendarEvent}
+                  onCancel={() => setShowCalendarEvent(false)}
+                  onSave={onSaveCalendarEvent}
+                />
+              )}
             </TabsContent>
             <TabsContent value="calendar" className="space-y-4">
               CALENDER
@@ -72,18 +138,14 @@ const DashboardPageComponent = ({ messages }: { messages: Message[] }) => {
           </div>
           <div className="fixed w-full md:w-[calc(100%-var(--sidebar-width))] left-0 md:left-[var(--sidebar-width)] bottom-0 bg-white p-4 border-t">
             <form
-              onSubmit={() => {
-                // handle form submission
-              }}
+              onSubmit={handleSubmit}
               className="flex flex-col sm:flex-row sm:items-end gap-4"
             >
               {/* Message Input */}
               <div className="relative flex-1 w-full">
                 <Textarea
-                  value={""}
-                  onChange={() => {
-                    // handle input change
-                  }}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
                   placeholder="Type your message..."
                   className="min-h-[80px] pr-10 resize-none"
                 />

@@ -170,6 +170,21 @@ exports.Prisma.MessageScalarFieldEnum = {
   userId: 'userId'
 };
 
+exports.Prisma.CalendarEventScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  location: 'location',
+  description: 'description',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  attendees: 'attendees',
+  userId: 'userId'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -191,7 +206,8 @@ exports.Prisma.ModelName = {
   Account: 'Account',
   Session: 'Session',
   VerificationToken: 'VerificationToken',
-  Message: 'Message'
+  Message: 'Message',
+  CalendarEvent: 'CalendarEvent'
 };
 
 /**

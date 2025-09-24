@@ -18,6 +18,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   messages      Message[]
+  calendarEvents CalendarEvent[]
  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -93,4 +94,22 @@ model Message {
   // relation to user
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  title       String
+  location    String? @default("Google Meet")
+  description String? @default("Google Meet Event")
+  startDate   DateTime
+  endDate     DateTime
+  startTime   String
+  endTime     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  attendees   String[] // Array of email addresses
+
+  // relation to user
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
