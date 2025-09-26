@@ -27,6 +27,7 @@ const Dashboard = async () => {
     <DashboardPageComponent
       messages={messages}
       calendarEvents={calendarEvents}
+      user={user}
     />
   );
 };

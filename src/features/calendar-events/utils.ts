@@ -38,3 +38,32 @@ export const parseCalendarEvent = (message: string): CalendarEventSchedule => {
     attendees: [],
   };
 };
+export const generateEventScheduledResponse = () =>
+  "The calendar event has been saved to your schedule.";
+
+export const toGoogleEventRequestBody = (event: CalendarEventSchedule) => {
+  // combine and pass the start date and time
+  const startDateTime = new Date(`${event.startDate}T${event.startTime}:00Z`);
+  const endDateTime = new Date(`${event.endDate}T${event.endTime}:00Z`);
+  return {
+    summary: event.title,
+    location: event.location,
+    description: event.description,
+    start: {
+      dateTime: startDateTime.toISOString(),
+      timeZone: "UTC",
+    },
+    end: {
+      dateTime: endDateTime.toISOString(),
+      timeZone: "UTC",
+    },
+    attendees: event.attendees.map((email) => ({ email })),
+    reminders: {
+      useDefault: false,
+      overrides: [
+        { method: "email", minutes: 24 * 60 },
+        { method: "popup", minutes: 10 },
+      ],
+    },
+  };
+};

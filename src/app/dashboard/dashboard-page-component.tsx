@@ -8,22 +8,36 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { Bot, Calendar, Clock, Mail, Send } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { CalendarEvent, Message } from "@/generated/prisma";
+import { CalendarEvent, Message, User } from "@/generated/prisma";
 import { ChatMessage } from "../components/chat-message";
 
 import { CalendarEventSchedule } from "@/features/calendar-events/types";
-import { parseCalendarEvent } from "@/features/calendar-events/utils";
+import {
+  generateEventScheduledResponse,
+  parseCalendarEvent,
+} from "@/features/calendar-events/utils";
 import { CalendarEventCard } from "../components/calendar-even-card";
+import { createId } from "@paralleldrive/cuid2";
+import { set } from "ramda";
+import { createMessageForCurrentUser } from "@/features/messeges/messages-helpers-server";
+import {
+  createCalendarEvent,
+  scheduleGoogleCalendarEvent,
+} from "@/actions/calender";
+import { create } from "domain";
+import { CalendarEventList } from "../components/calendar-event-list";
 
 const DashboardPageComponent = ({
   messages,
   calendarEvents,
+  user,
 }: {
   messages: Message[];
   calendarEvents: CalendarEvent[];
+  user: User;
 }) => {
   const [activeTab, setActiveTab] = useState("chat");
-  const [localMessages] = useState<Message[]>(messages);
+  const [localMessages, setLocalMessages] = useState<Message[]>(messages);
   const [input, setInput] = useState("");
   const [calendarEvent, setCalendarEvent] = useState<CalendarEventSchedule>({
     title: "",
@@ -74,12 +88,64 @@ const DashboardPageComponent = ({
   };
 
   const onSaveCalendarEvent = async (eventData: CalendarEventSchedule) => {
+    // PROMPT example: Save the calendar event
     // Schedule a meeting titled "Tech Sync with Team"
     // starting at June 13, 2025 4:00 PM
     // ending at June 13, 2025 5:00 PM
+    // located at Zoom
     // with description "Discuss sprint goals and blockers."
+    setShowCalendarEvent(false);
 
-    console.log("Saving event:", eventData);
+    const optimisticId = createId();
+    const attendees = Array.from(new Set([...eventData.attendees, user.email]));
+
+    setLocalMessages((prev) => [
+      ...prev,
+      {
+        role: "pal",
+        id: optimisticId,
+        userId: user.id,
+        content: generateEventScheduledResponse(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+
+    try {
+      await Promise.all([
+        createMessageForCurrentUser({
+          role: "pal",
+          message: generateEventScheduledResponse(),
+        }),
+        scheduleGoogleCalendarEvent({
+          ...eventData,
+          attendees,
+        }),
+        createCalendarEvent({
+          ...eventData,
+          userId: user.id,
+          attendees,
+          id: createId(),
+          startDate: new Date(eventData.startDate),
+          endDate: new Date(eventData.endDate),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }),
+      ]);
+    } catch (error) {
+      console.error("Failed to save calendar event:", error);
+      setLocalMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === optimisticId && msg.role === "pal"
+            ? {
+                ...msg,
+                content:
+                  "Something went wrong while scheduling your event. Please try again.",
+              }
+            : msg
+        )
+      );
+    }
   };
 
   return (
@@ -110,7 +176,7 @@ const DashboardPageComponent = ({
               <Mail className="size-4" /> Gmail
             </TabsTrigger>
           </TabsList>
-          <div className="flex1 overflow-y-auto px-4 pb-4 pt-14 mb-20">
+          <div className="flex1 overflow-y-auto px-4 pb-4 pt-14 mb-28">
             <TabsContent value="chat" className="space-y-4">
               <div className="flex-1 space-y-4 pb-4">
                 {localMessages.map((message) => (
@@ -127,7 +193,7 @@ const DashboardPageComponent = ({
               )}
             </TabsContent>
             <TabsContent value="calendar" className="space-y-4">
-              CALENDER
+              <CalendarEventList calendarEvents={calendarEvents} />
             </TabsContent>
             <TabsContent value="reminders" className="space-y-4">
               REMINDERS

@@ -20,3 +20,20 @@ export const getMessages = async (userId: string) => {
     orderBy: { createdAt: "asc" },
   });
 };
+
+export const createMessage = async ({
+  role,
+  userId,
+  content,
+}: {
+  role: "user" | "assistant" | "pal";
+  userId: string;
+  content: string;
+}) =>
+  prisma.message.create({
+    data: {
+      content,
+      role,
+      userId,
+    },
+  });
