@@ -185,6 +185,16 @@ exports.Prisma.CalendarEventScalarFieldEnum = {
   userId: 'userId'
 };
 
+exports.Prisma.EmailScalarFieldEnum = {
+  id: 'id',
+  to: 'to',
+  subject: 'subject',
+  body: 'body',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  userId: 'userId'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -207,7 +217,8 @@ exports.Prisma.ModelName = {
   Session: 'Session',
   VerificationToken: 'VerificationToken',
   Message: 'Message',
-  CalendarEvent: 'CalendarEvent'
+  CalendarEvent: 'CalendarEvent',
+  Email: 'Email'
 };
 
 /**

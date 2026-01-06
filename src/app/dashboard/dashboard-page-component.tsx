@@ -8,7 +8,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { Bot, Calendar, Clock, Mail, Send } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { CalendarEvent, Message, User } from "@/generated/prisma";
+import { CalendarEvent, Email, Message, User } from "@/generated/prisma";
 import { ChatMessage } from "../components/chat-message";
 
 import { CalendarEventSchedule } from "@/features/calendar-events/types";
@@ -26,15 +26,19 @@ import {
 } from "@/actions/calender";
 import { create } from "domain";
 import { CalendarEventList } from "../components/calendar-event-list";
+import { useRouter } from "next/navigation";
+import EmailList from "../components/email-list";
 
 const DashboardPageComponent = ({
   messages,
   calendarEvents,
   user,
+  emails,
 }: {
   messages: Message[];
   calendarEvents: CalendarEvent[];
   user: User;
+  emails: Email[];
 }) => {
   const [activeTab, setActiveTab] = useState("chat");
   const [localMessages, setLocalMessages] = useState<Message[]>(messages);
@@ -51,6 +55,8 @@ const DashboardPageComponent = ({
   });
 
   const [showCalendarEvent, setShowCalendarEvent] = useState(false);
+
+  const router = useRouter();
 
   const messageEndRef = useRef<HTMLDivElement>(null);
 
@@ -132,6 +138,7 @@ const DashboardPageComponent = ({
           updatedAt: new Date(),
         }),
       ]);
+      router.refresh();
     } catch (error) {
       console.error("Failed to save calendar event:", error);
       setLocalMessages((prev) =>
@@ -199,7 +206,7 @@ const DashboardPageComponent = ({
               REMINDERS
             </TabsContent>
             <TabsContent value="gmail" className="space-y-4">
-              GMAIL
+              <EmailList emails={emails} />
             </TabsContent>
           </div>
           <div className="fixed w-full md:w-[calc(100%-var(--sidebar-width))] left-0 md:left-[var(--sidebar-width)] bottom-0 bg-white p-4 border-t">

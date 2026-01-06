@@ -3,6 +3,7 @@ import DashboardPageComponent from "./dashboard-page-component";
 import { auth } from "../../../auth";
 import { createAssistantDefaultMessage, getMessages } from "@/actions/messages";
 import { getCalendarEvents } from "@/actions/calender";
+import { getEmails } from "@/actions/emails";
 
 const Dashboard = async () => {
   const session = await auth();
@@ -19,15 +20,17 @@ const Dashboard = async () => {
     await createAssistantDefaultMessage(user.id);
   }
 
-  const [messages, calendarEvents] = await Promise.all([
+  const [messages, calendarEvents, emails] = await Promise.all([
     getMessages(user.id),
     getCalendarEvents(user.id),
+    getEmails(user.id),
   ]);
   return (
     <DashboardPageComponent
       messages={messages}
       calendarEvents={calendarEvents}
       user={user}
+      emails={emails}
     />
   );
 };

@@ -19,6 +19,7 @@ model User {
   sessions      Session[]
   messages      Message[]
   calendarEvents CalendarEvent[]
+  emails  Email[]
  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -112,4 +113,16 @@ model CalendarEvent {
   // relation to user
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Email {
+  id        String   @id @default(cuid())
+  to        String
+  subject   String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // relation to user
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
