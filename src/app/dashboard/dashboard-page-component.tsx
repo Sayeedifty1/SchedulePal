@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { CalendarEvent, Email, Message, User } from "@/generated/prisma";
 import { ChatMessage } from "../components/chat-message";
-
 import { CalendarEventSchedule } from "@/features/calendar-events/types";
 import {
   generateEventScheduledResponse,
@@ -18,16 +17,17 @@ import {
 } from "@/features/calendar-events/utils";
 import { CalendarEventCard } from "../components/calendar-even-card";
 import { createId } from "@paralleldrive/cuid2";
-import { set } from "ramda";
 import { createMessageForCurrentUser } from "@/features/messeges/messages-helpers-server";
 import {
   createCalendarEvent,
   scheduleGoogleCalendarEvent,
 } from "@/actions/calender";
-import { create } from "domain";
 import { CalendarEventList } from "../components/calendar-event-list";
 import { useRouter } from "next/navigation";
 import EmailList from "../components/email-list";
+import { parseEmailDraft } from "@/features/email/utils";
+import { EmailDraft } from "../components/email-draft";
+import { EmailDraft as EmailDraftType } from "@/features/email/types";
 
 const DashboardPageComponent = ({
   messages,
@@ -54,7 +54,13 @@ const DashboardPageComponent = ({
     attendees: [],
   });
 
+  const [emailDraft, setEmailDraft] = useState({
+    to: "",
+    subject: "",
+    body: "",
+  });
   const [showCalendarEvent, setShowCalendarEvent] = useState(false);
+  const [showEmailDraft, setShowEmailDraft] = useState(false);
 
   const router = useRouter();
 
@@ -75,18 +81,28 @@ const DashboardPageComponent = ({
   };
 
   const processMessage = async (message: string) => {
-    // const event = parseCalendarEvent(message);
+    setInput("");
+
+    if (
+      message.toLowerCase().includes("draft an email") ||
+      message.toLowerCase().includes("send an email")
+    ) {
+      return processEmailDraft(message);
+    }
 
     if (
       message.toLowerCase().includes("add meeting") ||
-      message.toLowerCase().includes("schedule") ||
-      message.toLowerCase().includes("meeting") ||
-      message.toLowerCase().includes("set up")
+      message.toLowerCase().includes("schedule")
     ) {
-      processCalendarEvent(message);
+      return processCalendarEvent(message);
     }
   };
 
+  const processEmailDraft = (message: string): void => {
+    const emailDraft = parseEmailDraft(message);
+    setEmailDraft(emailDraft);
+    setShowEmailDraft(true);
+  };
   const processCalendarEvent = async (message: string) => {
     const event = parseCalendarEvent(message);
     setCalendarEvent(event);
@@ -155,6 +171,12 @@ const DashboardPageComponent = ({
     }
   };
 
+  const onSendEmail = async (emailDraft: EmailDraftType) => {
+    // PROMPT example: Send an email to Alex@gmmail.com with subject "Meeting Follow-up" and body "Thank you for your time today."
+    //Send an email to johndoe@gmail.com with subject "Meeting Reminder" and body "Hi Bright, just reminding you that our meeting is tomorrow at 10 AM. Let me know if you need anything."
+    console.log("Sending email:", emailDraft);
+  };
+
   return (
     <div className="flex h-screen w-full bg-background">
       {/* sidebar */}
@@ -196,6 +218,15 @@ const DashboardPageComponent = ({
                   initialData={calendarEvent}
                   onCancel={() => setShowCalendarEvent(false)}
                   onSave={onSaveCalendarEvent}
+                />
+              )}
+
+              {showEmailDraft && (
+                <EmailDraft
+                  draft={emailDraft}
+                  setDraft={setEmailDraft}
+                  onClose={() => setShowEmailDraft(false)}
+                  onSend={onSendEmail}
                 />
               )}
             </TabsContent>
