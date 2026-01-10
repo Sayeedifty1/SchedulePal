@@ -11,3 +11,22 @@ export const parseEmailDraft = (message: string): EmailDraft => {
     body: bodyMatch ? bodyMatch[1].trim() : "",
   };
 };
+export function createRawEmail({ to, subject, body }: EmailDraft) {
+  const emailLines = [
+    `To: ${to}`,
+    "Content-Type: text/html; charset=utf-8",
+    "MIME-Version: 1.0",
+    `Subject: ${subject}`,
+    "",
+    body,
+  ];
+
+  const email = emailLines.join("\n");
+  const encodedEmail = Buffer.from(email)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+
+  return encodedEmail;
+}

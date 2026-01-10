@@ -79,7 +79,6 @@ const EmailList = ({ emails, onEmailSelect }: EmailListProps) => {
           </CardContent>
         </Card>
       ))}
-      onClick={() => handleEmailSelect(email)}
     </div>
   );
 };

@@ -28,6 +28,7 @@ import EmailList from "../components/email-list";
 import { parseEmailDraft } from "@/features/email/utils";
 import { EmailDraft } from "../components/email-draft";
 import { EmailDraft as EmailDraftType } from "@/features/email/types";
+import { createEmail, sendEmailUsingGmail } from "@/actions/emails";
 
 const DashboardPageComponent = ({
   messages,
@@ -174,7 +175,48 @@ const DashboardPageComponent = ({
   const onSendEmail = async (emailDraft: EmailDraftType) => {
     // PROMPT example: Send an email to Alex@gmmail.com with subject "Meeting Follow-up" and body "Thank you for your time today."
     //Send an email to johndoe@gmail.com with subject "Meeting Reminder" and body "Hi Bright, just reminding you that our meeting is tomorrow at 10 AM. Let me know if you need anything."
-    console.log("Sending email:", emailDraft);
+    setShowEmailDraft(false);
+    const optimisticId = createId();
+    setLocalMessages((prev) => [
+      ...prev,
+      {
+        role: "pal",
+        id: optimisticId,
+        userId: user.id,
+        content: `I've drafted and sent an email to ${emailDraft.to} with the subject "${emailDraft.subject}".`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+    try {
+      await Promise.all([
+        createMessageForCurrentUser({
+          role: "assistant",
+          message: `Email sent to ${emailDraft.to} with subject "${emailDraft.subject}"`,
+        }),
+        sendEmailUsingGmail(emailDraft),
+        createEmail({
+          ...emailDraft,
+          userId: user.id,
+          id: createId(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }),
+      ]);
+    } catch (error) {
+      console.error("Failed to send email:", error);
+      setLocalMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === optimisticId && msg.role === "pal"
+            ? {
+                ...msg,
+                content:
+                  "Something went wrong while sending an Email. Please try again.",
+              }
+            : msg
+        )
+      );
+    }
   };
 
   return (
